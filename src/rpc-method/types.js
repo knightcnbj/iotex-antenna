@@ -72,7 +72,6 @@ export interface IEpochData {
 
 export interface IChainMeta {
   height?: string | null,
-  supply?: string | null,
   numActions?: string | null,
   tps?: string | null,
   epoch?: IEpochData | null,
@@ -99,7 +98,6 @@ export class GetChainMetaRequest {
       const epochData = meta.Epoch;
       res.chainMeta = {
         height: meta.getHeight(),
-        supply: meta.getSupply(),
         numActions: meta.getNumactions(),
         tps: meta.getTps(),
         epoch: epochData,
@@ -196,8 +194,8 @@ export class GetBlockMetasRequest {
       blkMetas: metas,
     };
     if (metas) {
+      const parsedMetas = [];
       for (let i = 0; i < metas.length; i++) {
-        const parsedMetas = [];
         parsedMetas[i] = {
           hash: metas[i].getHash(),
           height: metas[i].getHeight(),
@@ -209,8 +207,8 @@ export class GetBlockMetasRequest {
           receiptRoot: metas[i].getReceiptroot(),
           deltaStateDigest: metas[i].getDeltastatedigest(),
         };
-        res.blkMetas = parsedMetas;
       }
+      res.blkMetas = parsedMetas;
     }
     return res;
   }
@@ -928,7 +926,6 @@ export function toAction(req: IAction): any {
     pbActionCore.setPlumtransfer(toActionPlumTransfer(core.plumTransfer));
     pbActionCore.setDeposittorewardingfund(toActionDepositToRewardingFund(core.depositToRewardingFund));
     pbActionCore.setClaimfromrewardingfund(toActionClaimFromRewardingFund(core.claimFromRewardingFund));
-    pbActionCore.setSetreward(toActionSetReward(core.setReward));
     pbActionCore.setGrantreward(toActionGrantReward(core.grantReward));
   }
 
@@ -1348,7 +1345,6 @@ export class GetActionsRequest {
             plumTransfer: this.fromPlumTransfer(rawActions[i].getCore().getPlumtransfer()),
             depositToRewardingFund: this.fromDepositToRewardingFund(rawActions[i].getCore().getDeposittorewardingfund()),
             claimFromRewardingFund: this.fromClaimFromRewardingFund(rawActions[i].getCore().getClaimfromrewardingfund()),
-            setReward: this.fromSetReward(rawActions[i].getCore().getSetreward()),
             grantReward: this.fromGrantReward(rawActions[i].getCore().getGrantreward()),
           };
         }
@@ -1439,6 +1435,49 @@ export interface IReceipt {
 export interface IGetReceiptByActionResponse {
   /** GetReceiptByActionResponse receipt */
   receipt?: IReceipt | null,
+}
+
+export class GetReceiptByActionRequest {
+  static to(req: IGetReceiptByActionRequest): any {
+    const pbReq = new apiPb.GetReceiptByActionRequest();
+    if (req.actionHash) {
+      pbReq.setActionhash(req.actionHash);
+    }
+    return pbReq;
+  }
+
+  static from(pbRes: any): IGetReceiptByActionResponse {
+    const receiptData = pbRes.getReceiptByAction();
+    const res = {
+      receipt: receiptData,
+    };
+    if (receiptData) {
+      const logsData = receiptData.getLogs();
+      res.receipt = {
+        returnValue: receiptData.getReturnValue(),
+        status: receiptData.getStatus(),
+        actHash: receiptData.getActHash(),
+        gasConsumed: receiptData.getGasConsumed(),
+        contractAddress: receiptData.getContractAddress(),
+        logs: logsData,
+      };
+      if (logsData) {
+        const parsedLogsData = [];
+        for (let i = 0; i < logsData.length; i++) {
+          parsedLogsData[i] = {
+            address: logsData[i].getAddress(),
+            topics: logsData[i].getTopics(),
+            data: logsData[i].getData(),
+            blockNumber: logsData[i].getBlockNumber(),
+            txnHash: logsData[i].getTxnHash(),
+            index: logsData[i].getIndex(),
+          };
+        }
+        res.receipt.logs = parsedLogsData;
+      }
+    }
+    return res;
+  }
 }
 
 /** Properties of a ReadContractRequest. */
