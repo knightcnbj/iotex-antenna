@@ -28,13 +28,14 @@ export default class RpcMethod implements IRpcMethod {
 
   constructor(hostname: string) {
     const packageDefinition = protoLoader.loadSync(
-      `${__dirname}/../proto/api.proto`,
+      `${__dirname}/../../proto/api/api.proto`,
       {
         keepCase: true,
         longs: String,
         enums: String,
         defaults: true,
-        oneofs: true
+        oneofs: true,
+        includeDirs: [`${__dirname}/../../`]
       }
     );
     const iotexapi = grpc.loadPackageDefinition(packageDefinition).iotexapi;
@@ -51,6 +52,7 @@ export default class RpcMethod implements IRpcMethod {
     req: IGetAccountRequest
   ): Promise<IGetAccountResponse> {
     const getAccount = promisify(this.client.getAccount.bind(this.client));
+    // @ts-ignore
     return getAccount(req);
   }
 
@@ -60,6 +62,7 @@ export default class RpcMethod implements IRpcMethod {
     const getBlockMetas = promisify(
       this.client.getBlockMetas.bind(this.client)
     );
+    // @ts-ignore
     return getBlockMetas(req);
   }
 
@@ -75,6 +78,7 @@ export default class RpcMethod implements IRpcMethod {
     req: IGetActionsRequest
   ): Promise<IGetActionsResponse> {
     const getActions = promisify(this.client.getActions.bind(this.client));
+    // @ts-ignore
     return getActions(req);
   }
 
@@ -94,6 +98,7 @@ export default class RpcMethod implements IRpcMethod {
     const getReceiptByAction = promisify(
       this.client.getReceiptByAction.bind(this.client)
     );
+    // @ts-ignore
     return getReceiptByAction(req);
   }
 
@@ -101,6 +106,7 @@ export default class RpcMethod implements IRpcMethod {
     req: IReadContractRequest
   ): Promise<IReadContractResponse> {
     const readContract = promisify(this.client.readContract.bind(this.client));
+    // @ts-ignore
     return readContract(req);
   }
 
@@ -117,6 +123,7 @@ export default class RpcMethod implements IRpcMethod {
     const estimateGasForAction = promisify(
       this.client.estimateGasForAction.bind(this.client)
     );
+    // @ts-ignore
     return estimateGasForAction(req);
   }
 }

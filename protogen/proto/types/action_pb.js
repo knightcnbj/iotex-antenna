@@ -498,9 +498,7 @@ proto.iotextypes.Candidate.toObject = function(includeInstance, msg) {
     address: jspb.Message.getFieldWithDefault(msg, 1, ""),
     votes: msg.getVotes_asB64(),
     pubkey: msg.getPubkey_asB64(),
-    creationheight: jspb.Message.getFieldWithDefault(msg, 4, 0),
-    lastupdateheight: jspb.Message.getFieldWithDefault(msg, 5, 0),
-    rewardaddress: jspb.Message.getFieldWithDefault(msg, 6, "")
+    rewardaddress: jspb.Message.getFieldWithDefault(msg, 4, "")
   };
 
   if (includeInstance) {
@@ -550,14 +548,6 @@ proto.iotextypes.Candidate.deserializeBinaryFromReader = function(msg, reader) {
       msg.setPubkey(value);
       break;
     case 4:
-      var value = /** @type {number} */ (reader.readUint64());
-      msg.setCreationheight(value);
-      break;
-    case 5:
-      var value = /** @type {number} */ (reader.readUint64());
-      msg.setLastupdateheight(value);
-      break;
-    case 6:
       var value = /** @type {string} */ (reader.readString());
       msg.setRewardaddress(value);
       break;
@@ -611,24 +601,10 @@ proto.iotextypes.Candidate.serializeBinaryToWriter = function(message, writer) {
       f
     );
   }
-  f = message.getCreationheight();
-  if (f !== 0) {
-    writer.writeUint64(
-      4,
-      f
-    );
-  }
-  f = message.getLastupdateheight();
-  if (f !== 0) {
-    writer.writeUint64(
-      5,
-      f
-    );
-  }
   f = message.getRewardaddress();
   if (f.length > 0) {
     writer.writeString(
-      6,
+      4,
       f
     );
   }
@@ -729,47 +705,17 @@ proto.iotextypes.Candidate.prototype.setPubkey = function(value) {
 
 
 /**
- * optional uint64 creationHeight = 4;
- * @return {number}
- */
-proto.iotextypes.Candidate.prototype.getCreationheight = function() {
-  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 4, 0));
-};
-
-
-/** @param {number} value */
-proto.iotextypes.Candidate.prototype.setCreationheight = function(value) {
-  jspb.Message.setProto3IntField(this, 4, value);
-};
-
-
-/**
- * optional uint64 lastUpdateHeight = 5;
- * @return {number}
- */
-proto.iotextypes.Candidate.prototype.getLastupdateheight = function() {
-  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 5, 0));
-};
-
-
-/** @param {number} value */
-proto.iotextypes.Candidate.prototype.setLastupdateheight = function(value) {
-  jspb.Message.setProto3IntField(this, 5, value);
-};
-
-
-/**
- * optional string rewardAddress = 6;
+ * optional string rewardAddress = 4;
  * @return {string}
  */
 proto.iotextypes.Candidate.prototype.getRewardaddress = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 6, ""));
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
 };
 
 
 /** @param {string} value */
 proto.iotextypes.Candidate.prototype.setRewardaddress = function(value) {
-  jspb.Message.setProto3StringField(this, 6, value);
+  jspb.Message.setProto3StringField(this, 4, value);
 };
 
 

@@ -11,8 +11,8 @@ var jspb = require('google-protobuf');
 var goog = jspb;
 var global = Function('return this')();
 
-var action_pb = require('./action_pb.js');
-var endorsement_pb = require('./endorsement_pb.js');
+var proto_types_action_pb = require('../../proto/types/action_pb.js');
+var proto_types_endorsement_pb = require('../../proto/types/endorsement_pb.js');
 var google_protobuf_timestamp_pb = require('google-protobuf/google/protobuf/timestamp_pb.js');
 goog.exportSymbol('proto.iotextypes.AccountMeta', null, global);
 goog.exportSymbol('proto.iotextypes.Block', null, global);
@@ -713,12 +713,19 @@ proto.iotextypes.BlockHeaderCore.prototype.setReceiptroot = function(value) {
  * @constructor
  */
 proto.iotextypes.BlockFooter = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.iotextypes.BlockFooter.repeatedFields_, null);
 };
 goog.inherits(proto.iotextypes.BlockFooter, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
   proto.iotextypes.BlockFooter.displayName = 'proto.iotextypes.BlockFooter';
 }
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.iotextypes.BlockFooter.repeatedFields_ = [1];
+
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -748,8 +755,9 @@ proto.iotextypes.BlockFooter.prototype.toObject = function(opt_includeInstance) 
  */
 proto.iotextypes.BlockFooter.toObject = function(includeInstance, msg) {
   var f, obj = {
-    committimestamp: jspb.Message.getFieldWithDefault(msg, 1, 0),
-    endorsements: (f = msg.getEndorsements()) && endorsement_pb.EndorsementSet.toObject(includeInstance, f)
+    endorsementsList: jspb.Message.toObjectList(msg.getEndorsementsList(),
+    proto_types_endorsement_pb.Endorsement.toObject, includeInstance),
+    timestamp: (f = msg.getTimestamp()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -787,13 +795,14 @@ proto.iotextypes.BlockFooter.deserializeBinaryFromReader = function(msg, reader)
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = /** @type {number} */ (reader.readInt64());
-      msg.setCommittimestamp(value);
+      var value = new proto_types_endorsement_pb.Endorsement;
+      reader.readMessage(value,proto_types_endorsement_pb.Endorsement.deserializeBinaryFromReader);
+      msg.addEndorsements(value);
       break;
     case 2:
-      var value = new endorsement_pb.EndorsementSet;
-      reader.readMessage(value,endorsement_pb.EndorsementSet.deserializeBinaryFromReader);
-      msg.setEndorsements(value);
+      var value = new google_protobuf_timestamp_pb.Timestamp;
+      reader.readMessage(value,google_protobuf_timestamp_pb.Timestamp.deserializeBinaryFromReader);
+      msg.setTimestamp(value);
       break;
     default:
       reader.skipField();
@@ -824,57 +833,74 @@ proto.iotextypes.BlockFooter.prototype.serializeBinary = function() {
  */
 proto.iotextypes.BlockFooter.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getCommittimestamp();
-  if (f !== 0) {
-    writer.writeInt64(
+  f = message.getEndorsementsList();
+  if (f.length > 0) {
+    writer.writeRepeatedMessage(
       1,
-      f
+      f,
+      proto_types_endorsement_pb.Endorsement.serializeBinaryToWriter
     );
   }
-  f = message.getEndorsements();
+  f = message.getTimestamp();
   if (f != null) {
     writer.writeMessage(
       2,
       f,
-      endorsement_pb.EndorsementSet.serializeBinaryToWriter
+      google_protobuf_timestamp_pb.Timestamp.serializeBinaryToWriter
     );
   }
 };
 
 
 /**
- * optional int64 CommitTimestamp = 1;
- * @return {number}
+ * repeated Endorsement endorsements = 1;
+ * @return {!Array<!proto.iotextypes.Endorsement>}
  */
-proto.iotextypes.BlockFooter.prototype.getCommittimestamp = function() {
-  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 1, 0));
+proto.iotextypes.BlockFooter.prototype.getEndorsementsList = function() {
+  return /** @type{!Array<!proto.iotextypes.Endorsement>} */ (
+    jspb.Message.getRepeatedWrapperField(this, proto_types_endorsement_pb.Endorsement, 1));
 };
 
 
-/** @param {number} value */
-proto.iotextypes.BlockFooter.prototype.setCommittimestamp = function(value) {
-  jspb.Message.setProto3IntField(this, 1, value);
+/** @param {!Array<!proto.iotextypes.Endorsement>} value */
+proto.iotextypes.BlockFooter.prototype.setEndorsementsList = function(value) {
+  jspb.Message.setRepeatedWrapperField(this, 1, value);
 };
 
 
 /**
- * optional EndorsementSet endorsements = 2;
- * @return {?proto.iotextypes.EndorsementSet}
+ * @param {!proto.iotextypes.Endorsement=} opt_value
+ * @param {number=} opt_index
+ * @return {!proto.iotextypes.Endorsement}
  */
-proto.iotextypes.BlockFooter.prototype.getEndorsements = function() {
-  return /** @type{?proto.iotextypes.EndorsementSet} */ (
-    jspb.Message.getWrapperField(this, endorsement_pb.EndorsementSet, 2));
+proto.iotextypes.BlockFooter.prototype.addEndorsements = function(opt_value, opt_index) {
+  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.iotextypes.Endorsement, opt_index);
 };
 
 
-/** @param {?proto.iotextypes.EndorsementSet|undefined} value */
-proto.iotextypes.BlockFooter.prototype.setEndorsements = function(value) {
+proto.iotextypes.BlockFooter.prototype.clearEndorsementsList = function() {
+  this.setEndorsementsList([]);
+};
+
+
+/**
+ * optional google.protobuf.Timestamp timestamp = 2;
+ * @return {?proto.google.protobuf.Timestamp}
+ */
+proto.iotextypes.BlockFooter.prototype.getTimestamp = function() {
+  return /** @type{?proto.google.protobuf.Timestamp} */ (
+    jspb.Message.getWrapperField(this, google_protobuf_timestamp_pb.Timestamp, 2));
+};
+
+
+/** @param {?proto.google.protobuf.Timestamp|undefined} value */
+proto.iotextypes.BlockFooter.prototype.setTimestamp = function(value) {
   jspb.Message.setWrapperField(this, 2, value);
 };
 
 
-proto.iotextypes.BlockFooter.prototype.clearEndorsements = function() {
-  this.setEndorsements(undefined);
+proto.iotextypes.BlockFooter.prototype.clearTimestamp = function() {
+  this.setTimestamp(undefined);
 };
 
 
@@ -882,7 +908,7 @@ proto.iotextypes.BlockFooter.prototype.clearEndorsements = function() {
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.iotextypes.BlockFooter.prototype.hasEndorsements = function() {
+proto.iotextypes.BlockFooter.prototype.hasTimestamp = function() {
   return jspb.Message.getField(this, 2) != null;
 };
 
@@ -943,7 +969,7 @@ proto.iotextypes.Block.toObject = function(includeInstance, msg) {
   var f, obj = {
     header: (f = msg.getHeader()) && proto.iotextypes.BlockHeader.toObject(includeInstance, f),
     actionsList: jspb.Message.toObjectList(msg.getActionsList(),
-    action_pb.Action.toObject, includeInstance),
+    proto_types_action_pb.Action.toObject, includeInstance),
     footer: (f = msg.getFooter()) && proto.iotextypes.BlockFooter.toObject(includeInstance, f)
   };
 
@@ -987,8 +1013,8 @@ proto.iotextypes.Block.deserializeBinaryFromReader = function(msg, reader) {
       msg.setHeader(value);
       break;
     case 2:
-      var value = new action_pb.Action;
-      reader.readMessage(value,action_pb.Action.deserializeBinaryFromReader);
+      var value = new proto_types_action_pb.Action;
+      reader.readMessage(value,proto_types_action_pb.Action.deserializeBinaryFromReader);
       msg.addActions(value);
       break;
     case 3:
@@ -1038,7 +1064,7 @@ proto.iotextypes.Block.serializeBinaryToWriter = function(message, writer) {
     writer.writeRepeatedMessage(
       2,
       f,
-      action_pb.Action.serializeBinaryToWriter
+      proto_types_action_pb.Action.serializeBinaryToWriter
     );
   }
   f = message.getFooter();
@@ -1088,7 +1114,7 @@ proto.iotextypes.Block.prototype.hasHeader = function() {
  */
 proto.iotextypes.Block.prototype.getActionsList = function() {
   return /** @type{!Array<!proto.iotextypes.Action>} */ (
-    jspb.Message.getRepeatedWrapperField(this, action_pb.Action, 2));
+    jspb.Message.getRepeatedWrapperField(this, proto_types_action_pb.Action, 2));
 };
 
 
@@ -1198,7 +1224,7 @@ proto.iotextypes.Receipts.prototype.toObject = function(opt_includeInstance) {
 proto.iotextypes.Receipts.toObject = function(includeInstance, msg) {
   var f, obj = {
     receiptsList: jspb.Message.toObjectList(msg.getReceiptsList(),
-    action_pb.Receipt.toObject, includeInstance)
+    proto_types_action_pb.Receipt.toObject, includeInstance)
   };
 
   if (includeInstance) {
@@ -1236,8 +1262,8 @@ proto.iotextypes.Receipts.deserializeBinaryFromReader = function(msg, reader) {
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = new action_pb.Receipt;
-      reader.readMessage(value,action_pb.Receipt.deserializeBinaryFromReader);
+      var value = new proto_types_action_pb.Receipt;
+      reader.readMessage(value,proto_types_action_pb.Receipt.deserializeBinaryFromReader);
       msg.addReceipts(value);
       break;
     default:
@@ -1274,7 +1300,7 @@ proto.iotextypes.Receipts.serializeBinaryToWriter = function(message, writer) {
     writer.writeRepeatedMessage(
       1,
       f,
-      action_pb.Receipt.serializeBinaryToWriter
+      proto_types_action_pb.Receipt.serializeBinaryToWriter
     );
   }
 };
@@ -1286,7 +1312,7 @@ proto.iotextypes.Receipts.serializeBinaryToWriter = function(message, writer) {
  */
 proto.iotextypes.Receipts.prototype.getReceiptsList = function() {
   return /** @type{!Array<!proto.iotextypes.Receipt>} */ (
-    jspb.Message.getRepeatedWrapperField(this, action_pb.Receipt, 1));
+    jspb.Message.getRepeatedWrapperField(this, proto_types_action_pb.Receipt, 1));
 };
 
 
@@ -1359,7 +1385,8 @@ proto.iotextypes.EpochData.prototype.toObject = function(opt_includeInstance) {
 proto.iotextypes.EpochData.toObject = function(includeInstance, msg) {
   var f, obj = {
     num: jspb.Message.getFieldWithDefault(msg, 1, 0),
-    height: jspb.Message.getFieldWithDefault(msg, 2, 0)
+    height: jspb.Message.getFieldWithDefault(msg, 2, 0),
+    gravitychainstartheight: jspb.Message.getFieldWithDefault(msg, 3, 0)
   };
 
   if (includeInstance) {
@@ -1404,6 +1431,10 @@ proto.iotextypes.EpochData.deserializeBinaryFromReader = function(msg, reader) {
       var value = /** @type {number} */ (reader.readUint64());
       msg.setHeight(value);
       break;
+    case 3:
+      var value = /** @type {number} */ (reader.readUint64());
+      msg.setGravitychainstartheight(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -1447,6 +1478,13 @@ proto.iotextypes.EpochData.serializeBinaryToWriter = function(message, writer) {
       f
     );
   }
+  f = message.getGravitychainstartheight();
+  if (f !== 0) {
+    writer.writeUint64(
+      3,
+      f
+    );
+  }
 };
 
 
@@ -1477,6 +1515,21 @@ proto.iotextypes.EpochData.prototype.getHeight = function() {
 /** @param {number} value */
 proto.iotextypes.EpochData.prototype.setHeight = function(value) {
   jspb.Message.setProto3IntField(this, 2, value);
+};
+
+
+/**
+ * optional uint64 gravityChainStartHeight = 3;
+ * @return {number}
+ */
+proto.iotextypes.EpochData.prototype.getGravitychainstartheight = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 3, 0));
+};
+
+
+/** @param {number} value */
+proto.iotextypes.EpochData.prototype.setGravitychainstartheight = function(value) {
+  jspb.Message.setProto3IntField(this, 3, value);
 };
 
 
@@ -2128,7 +2181,8 @@ proto.iotextypes.AccountMeta.toObject = function(includeInstance, msg) {
     address: jspb.Message.getFieldWithDefault(msg, 1, ""),
     balance: jspb.Message.getFieldWithDefault(msg, 2, ""),
     nonce: jspb.Message.getFieldWithDefault(msg, 3, 0),
-    pendingnonce: jspb.Message.getFieldWithDefault(msg, 4, 0)
+    pendingnonce: jspb.Message.getFieldWithDefault(msg, 4, 0),
+    numactions: jspb.Message.getFieldWithDefault(msg, 5, 0)
   };
 
   if (includeInstance) {
@@ -2180,6 +2234,10 @@ proto.iotextypes.AccountMeta.deserializeBinaryFromReader = function(msg, reader)
     case 4:
       var value = /** @type {number} */ (reader.readUint64());
       msg.setPendingnonce(value);
+      break;
+    case 5:
+      var value = /** @type {number} */ (reader.readUint64());
+      msg.setNumactions(value);
       break;
     default:
       reader.skipField();
@@ -2235,6 +2293,13 @@ proto.iotextypes.AccountMeta.serializeBinaryToWriter = function(message, writer)
   if (f !== 0) {
     writer.writeUint64(
       4,
+      f
+    );
+  }
+  f = message.getNumactions();
+  if (f !== 0) {
+    writer.writeUint64(
+      5,
       f
     );
   }
@@ -2298,6 +2363,21 @@ proto.iotextypes.AccountMeta.prototype.getPendingnonce = function() {
 /** @param {number} value */
 proto.iotextypes.AccountMeta.prototype.setPendingnonce = function(value) {
   jspb.Message.setProto3IntField(this, 4, value);
+};
+
+
+/**
+ * optional uint64 numActions = 5;
+ * @return {number}
+ */
+proto.iotextypes.AccountMeta.prototype.getNumactions = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 5, 0));
+};
+
+
+/** @param {number} value */
+proto.iotextypes.AccountMeta.prototype.setNumactions = function(value) {
+  jspb.Message.setProto3IntField(this, 5, value);
 };
 
 
