@@ -4,7 +4,8 @@ import { Timestamp } from "google-protobuf/google/protobuf/timestamp_pb";
 import apiPb, {
   GetAccountResponse,
   GetActionsResponse,
-  GetReceiptByActionResponse
+  GetReceiptByActionResponse,
+  GetServerMetaResponse
 } from "../../protogen/proto/api/api_pb";
 import actionPb, { PutPollResult } from "../../protogen/proto/types/action_pb";
 
@@ -79,7 +80,7 @@ export const GetAccountRequest = {
 export interface IEpochData {
   num: number;
   height: number;
-  beaconChainHeight: number;
+  gravityChainStartHeight: number | string;
 }
 
 export interface IChainMeta {
@@ -116,6 +117,47 @@ export const GetChainMetaRequest = {
       };
     }
     return res;
+  }
+};
+
+// interface for get server metas
+export interface IServerMeta {
+  packageVersion: string;
+  packageCommitID: string;
+  gitStatus: string;
+  goVersion: string;
+  buildTime: string;
+}
+
+export interface IGetServerMetaRequest {}
+
+export interface IGetServerMetaResponse {
+  serverMeta: IServerMeta | undefined;
+}
+// @ts-ignore
+export const GetServerMetaRequest = {
+  // @ts-ignore
+  to(req: IGetServerMetaRequest): apiPb.GetServerMetaRequest {
+    return new apiPb.GetServerMetaRequest();
+  },
+
+  from(pbRes: GetServerMetaResponse): IGetServerMetaResponse {
+    const meta = pbRes.getServermeta();
+    if (!meta) {
+      return {
+        serverMeta: undefined
+      };
+    }
+
+    return {
+      serverMeta: {
+        packageVersion: meta.getPackageversion(),
+        packageCommitID: meta.getPackagecommitid(),
+        gitStatus: meta.getGitstatus(),
+        goVersion: meta.getGoversion(),
+        buildTime: meta.getBuildtime()
+      }
+    };
   }
 };
 
@@ -1548,7 +1590,7 @@ export interface IGetReceiptByActionRequest {
 // Properties of an Log.
 export interface ILog {
   // Log address
-  address: string;
+  contractAddress: string;
 
   // Log topics
   topics: Array<Buffer | {}>;
@@ -1556,11 +1598,11 @@ export interface ILog {
   // Log data
   data: Buffer | {};
 
-  // Log blockNumber
-  blockNumber: number;
+  // Log blkHeight
+  blkHeight: number;
 
   // Log txnHash
-  txnHash: Buffer | {};
+  actHash: Buffer | {};
 
   // Log index
   index: number;
@@ -1573,6 +1615,9 @@ export interface IReceipt {
 
   // Receipt status
   status: number;
+
+  // blkHeight
+  blkHeight: number;
 
   // Receipt actHash
   actHash: Buffer | {};
@@ -1587,10 +1632,19 @@ export interface IReceipt {
   logs: Array<ILog>;
 }
 
+// Properties of an Receipt.
+export interface IReceiptInfo {
+  // Receipt
+  receipt: IReceipt;
+
+  // blkHash
+  blkHash: string;
+}
+
 // Properties of a GetReceiptByActionResponse.
 export interface IGetReceiptByActionResponse {
-  // GetReceiptByActionResponse receipt
-  receipt: IReceipt;
+  // GetReceiptByActionResponse receiptInfo
+  receiptInfo: IReceiptInfo;
 }
 
 export const GetReceiptByActionRequest = {
@@ -1603,43 +1657,60 @@ export const GetReceiptByActionRequest = {
   },
 
   from(pbRes: GetReceiptByActionResponse): IGetReceiptByActionResponse {
-    const receiptData = pbRes.getReceipt();
-    if (!receiptData) {
+    const receiptInfoData = pbRes.getReceiptinfo();
+    const receipt = {
+      returnValue: Buffer.from(""),
+      status: 0,
+      blkHeight: 0,
+      actHash: Buffer.from(""),
+      gasConsumed: 0,
+      contractAddress: "",
+      logs: []
+    };
+
+    if (!receiptInfoData) {
       return {
-        receipt: {
-          returnValue: Buffer.from(""),
-          // Receipt statu,
-          status: 0,
-          // Receipt actHas,
-          actHash: Buffer.from(""),
-          // Receipt gasConsume,
-          gasConsumed: 0,
-          // Receipt contractAddres,
-          contractAddress: "",
-          // Receipt log,
-          logs: []
+        receiptInfo: {
+          receipt,
+          blkHash: ""
         }
       };
     }
-    const res = {
-      receipt: {
-        returnValue: receiptData.getReturnvalue(),
-        status: receiptData.getStatus(),
-        actHash: receiptData.getActhash(),
-        gasConsumed: receiptData.getGasconsumed(),
-        contractAddress: receiptData.getContractaddress(),
-        logs: [] as Array<ILog>
-      }
-    };
+    const receiptData = receiptInfoData.getReceipt();
+    let res;
+    if (receiptData) {
+      res = {
+        receiptInfo: {
+          receipt: {
+            returnValue: receiptData.getReturnvalue(),
+            status: receiptData.getStatus(),
+            blkHeight: receiptData.getBlkheight(),
+            actHash: receiptData.getActhash(),
+            gasConsumed: receiptData.getGasconsumed(),
+            contractAddress: receiptData.getContractaddress(),
+            logs: [] as Array<ILog>
+          },
+          blkHash: receiptInfoData.getBlkhash()
+        }
+      };
+    } else {
+      return {
+        receiptInfo: {
+          receipt,
+          blkHash: receiptInfoData.getBlkhash()
+        }
+      };
+    }
+
     const logsData = receiptData.getLogsList();
     if (logsData) {
       for (const log of logsData) {
-        res.receipt.logs.push({
-          address: log.getAddress(),
+        res.receiptInfo.receipt.logs.push({
+          contractAddress: log.getContractaddress(),
           topics: log.getTopicsList(),
           data: log.getData(),
-          blockNumber: log.getBlocknumber(),
-          txnHash: log.getTxnhash(),
+          blkHeight: log.getBlkheight(),
+          actHash: log.getActhash(),
           index: log.getIndex()
         });
       }
@@ -1724,12 +1795,83 @@ export const EstimateGasForActionRequest = {
   }
 };
 
+// Properties of a BlockProducerInfo.
+export interface IBlockProducerInfo {
+  // BlockProducerInfo address
+  address: string;
+
+  // BlockProducerInfo votes
+  votes: string;
+
+  // BlockProducerInfo active
+  active: boolean;
+
+  // BlockProducerInfo production
+  production: number;
+}
+
+// Properties of a GetEpochMetaRequest.
+export interface IGetEpochMetaRequest {
+  epochNumber: number;
+}
+
+// Properties of a GetEpochMetaResponse.
+export interface IGetEpochMetaResponse {
+  // GetEpochMetaResponse epochData
+  epochData: IEpochData;
+
+  // GetEpochMetaResponse totalBlocks
+  totalBlocks: number;
+
+  // GetEpochMetaResponse blockProducersInfo
+  blockProducersInfo: Array<IBlockProducerInfo>;
+}
+
+export const GetEpochMetaRequest = {
+  to(req: IGetEpochMetaRequest): any {
+    const pbReq = new apiPb.GetEpochMetaRequest();
+    if (req.epochNumber) {
+      pbReq.setEpochnumber(req.epochNumber);
+    }
+    return pbReq;
+  },
+  from(pbRes: any): IGetEpochMetaResponse {
+    const epoch = pbRes.getEpochdata();
+    const bpInfo = pbRes.getBlockproducersinfoList();
+    const res = {
+      epochData: {
+        num: epoch.getNum(),
+        height: epoch.getHeight(),
+        gravityChainStartHeight: epoch.getGravitychainstartheight()
+      },
+      totalBlocks: pbRes.getTotalblocks(),
+      blockProducersInfo: bpInfo
+    };
+    if (bpInfo) {
+      const parsedBpinfo = [];
+      for (let i = 0; i < bpInfo.length; i++) {
+        parsedBpinfo[i] = {
+          address: bpInfo[i].getAddress(),
+          votes: bpInfo[i].getVotes(),
+          active: bpInfo[i].getActive(),
+          production: bpInfo[i].getProduction()
+        };
+      }
+      res.blockProducersInfo = parsedBpinfo;
+    }
+
+    return res;
+  }
+};
+
 export interface IRpcMethod {
   getAccount(req: IGetAccountRequest): Promise<IGetAccountResponse>;
 
   getBlockMetas(req: IGetBlockMetasRequest): Promise<IGetBlockMetasResponse>;
 
   getChainMeta(req: IGetChainMetaRequest): Promise<IGetChainMetaResponse>;
+
+  getServerMeta(req: IGetServerMetaRequest): Promise<IGetServerMetaResponse>;
 
   getActions(req: IGetActionsRequest): Promise<IGetActionsResponse>;
 
@@ -1748,4 +1890,6 @@ export interface IRpcMethod {
   estimateGasForAction(
     req: IEstimateGasForActionRequest
   ): Promise<IEstimateGasForActionResponse>;
+
+  getEpochMeta(req: IGetEpochMetaRequest): Promise<IGetEpochMetaResponse>;
 }

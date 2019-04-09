@@ -2,11 +2,14 @@ import test from "ava";
 // @ts-ignore
 import browserEnv from "browser-env";
 import { get } from "dottie";
+import dotenv from "dotenv";
 import RpcMethod from "../browser-rpc-method";
 import { ITransfer } from "../types";
 browserEnv();
 
-const TEST_HOSTNAME = "http://35.239.122.109:80";
+dotenv.config();
+
+const TEST_HOSTNAME = process.env.IOTEX_CORE || "http://localhost:14014";
 
 test("RpcMethod.getAccount", async t => {
   const client = new RpcMethod(TEST_HOSTNAME);
@@ -169,4 +172,12 @@ test("RpcMethod.estimateGasForAction", async t => {
       t.deepEqual(resp2.gas, "10400");
     }
   }
+});
+
+test("RpcMethod.getEpochMeta", async t => {
+  const client = new RpcMethod(TEST_HOSTNAME);
+  const epochData = await client.getEpochMeta({ epochNumber: 1 });
+  t.truthy(epochData.totalBlocks);
+  t.truthy(epochData.blockProducersInfo);
+  t.truthy(epochData.epochData);
 });

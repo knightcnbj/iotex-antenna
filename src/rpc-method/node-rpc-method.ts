@@ -12,8 +12,12 @@ import {
   IGetBlockMetasResponse,
   IGetChainMetaRequest,
   IGetChainMetaResponse,
+  IGetEpochMetaRequest,
+  IGetEpochMetaResponse,
   IGetReceiptByActionRequest,
   IGetReceiptByActionResponse,
+  IGetServerMetaRequest,
+  IGetServerMetaResponse,
   IReadContractRequest,
   IReadContractResponse,
   IRpcMethod,
@@ -23,29 +27,43 @@ import {
   ISuggestGasPriceResponse
 } from "./types";
 
+const packageDefinition = protoLoader.loadSync(
+  `${__dirname}/../../proto/api/api.proto`,
+  {
+    keepCase: true,
+    longs: String,
+    enums: String,
+    defaults: true,
+    oneofs: true,
+    includeDirs: [`${__dirname}/../../`]
+  }
+);
+const iotexapi = grpc.loadPackageDefinition(packageDefinition).iotexapi;
+
+type Opts = {
+  timeout?: number;
+};
+
 export default class RpcMethod implements IRpcMethod {
   public client: IRpcMethod;
+  public timeout: number;
 
-  constructor(hostname: string) {
-    const packageDefinition = protoLoader.loadSync(
-      `${__dirname}/../../proto/api/api.proto`,
-      {
-        keepCase: true,
-        longs: String,
-        enums: String,
-        defaults: true,
-        oneofs: true,
-        includeDirs: [`${__dirname}/../../`]
-      }
+  constructor(hostname: string, options: Opts = {}) {
+    const normalizedHostname = String(hostname).replace(
+      /^(http:\/\/|https:\/\/)/,
+      ""
     );
-    const iotexapi = grpc.loadPackageDefinition(packageDefinition).iotexapi;
-
     // @ts-ignore
     this.client = new iotexapi.APIService(
-      hostname,
+      normalizedHostname,
       grpc.credentials.createInsecure(),
       null
     );
+    this.timeout = options.timeout || 3000;
+  }
+
+  public getDeadline(): Date {
+    return new Date(Date.now() + this.timeout);
   }
 
   public async getAccount(
@@ -53,7 +71,7 @@ export default class RpcMethod implements IRpcMethod {
   ): Promise<IGetAccountResponse> {
     const getAccount = promisify(this.client.getAccount.bind(this.client));
     // @ts-ignore
-    return getAccount(req);
+    return getAccount(req, { deadline: this.getDeadline() });
   }
 
   public async getBlockMetas(
@@ -63,7 +81,7 @@ export default class RpcMethod implements IRpcMethod {
       this.client.getBlockMetas.bind(this.client)
     );
     // @ts-ignore
-    return getBlockMetas(req);
+    return getBlockMetas(req, { deadline: this.getDeadline() });
   }
 
   public async getChainMeta(
@@ -71,7 +89,17 @@ export default class RpcMethod implements IRpcMethod {
   ): Promise<IGetChainMetaResponse> {
     const getChainMeta = promisify(this.client.getChainMeta.bind(this.client));
     // @ts-ignore
-    return getChainMeta(req);
+    return getChainMeta(req, { deadline: this.getDeadline() });
+  }
+
+  public async getServerMeta(
+    req: IGetServerMetaRequest
+  ): Promise<IGetServerMetaResponse> {
+    const getServerMeta = promisify(
+      this.client.getServerMeta.bind(this.client)
+    );
+    // @ts-ignore
+    return getServerMeta(req, { deadline: this.getDeadline() });
   }
 
   public async getActions(
@@ -79,7 +107,7 @@ export default class RpcMethod implements IRpcMethod {
   ): Promise<IGetActionsResponse> {
     const getActions = promisify(this.client.getActions.bind(this.client));
     // @ts-ignore
-    return getActions(req);
+    return getActions(req, { deadline: this.getDeadline() });
   }
 
   public async suggestGasPrice(
@@ -89,7 +117,7 @@ export default class RpcMethod implements IRpcMethod {
       this.client.suggestGasPrice.bind(this.client)
     );
     // @ts-ignore
-    return suggestGasPrice(req);
+    return suggestGasPrice(req, { deadline: this.getDeadline() });
   }
 
   public async getReceiptByAction(
@@ -99,7 +127,7 @@ export default class RpcMethod implements IRpcMethod {
       this.client.getReceiptByAction.bind(this.client)
     );
     // @ts-ignore
-    return getReceiptByAction(req);
+    return getReceiptByAction(req, { deadline: this.getDeadline() });
   }
 
   public async readContract(
@@ -107,14 +135,15 @@ export default class RpcMethod implements IRpcMethod {
   ): Promise<IReadContractResponse> {
     const readContract = promisify(this.client.readContract.bind(this.client));
     // @ts-ignore
-    return readContract(req);
+    return readContract(req, { deadline: this.getDeadline() });
   }
 
   public async sendAction(
     req: ISendActionRequest
   ): Promise<ISendActionResponse> {
     const sendAction = promisify(this.client.sendAction.bind(this.client));
-    return sendAction(req);
+    // @ts-ignore
+    return sendAction(req, { deadline: this.getDeadline() });
   }
 
   public async estimateGasForAction(
@@ -124,6 +153,14 @@ export default class RpcMethod implements IRpcMethod {
       this.client.estimateGasForAction.bind(this.client)
     );
     // @ts-ignore
-    return estimateGasForAction(req);
+    return estimateGasForAction(req, { deadline: this.getDeadline() });
+  }
+
+  public async getEpochMeta(
+    req: IGetEpochMetaRequest
+  ): Promise<IGetEpochMetaResponse> {
+    const getEpochMeta = promisify(this.client.getEpochMeta.bind(this.client));
+    // @ts-ignore
+    return getEpochMeta(req, { deadline: this.getDeadline() });
   }
 }

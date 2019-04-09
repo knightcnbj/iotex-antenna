@@ -1,9 +1,12 @@
 import test from "ava";
 import { get } from "dottie";
+import dotenv from "dotenv";
 import RpcMethod from "../node-rpc-method";
 import { ITransfer } from "../types";
 
-const TEST_HOSTNAME = "35.239.122.109:80";
+dotenv.config();
+
+const TEST_HOSTNAME = process.env.IOTEX_CORE || "http://localhost:14014";
 
 test("RpcMethod.getAccount", async t => {
   const client = new RpcMethod(TEST_HOSTNAME);
@@ -24,6 +27,12 @@ test("RpcMethod.getAccount", async t => {
 test("RpcMethod.getChainMeta", async t => {
   const client = new RpcMethod(TEST_HOSTNAME);
   const resp = await client.getChainMeta({});
+  t.truthy(resp);
+});
+
+test("RpcMethod.getServerMeta", async t => {
+  const client = new RpcMethod(TEST_HOSTNAME);
+  const resp = await client.getServerMeta({});
   t.truthy(resp);
 });
 
@@ -139,7 +148,7 @@ test.skip("RpcMethod.getReceiptByAction", async t => {
     actionHash:
       "01d5c895f3b066e695d516884bec9977404875aeb15216bc087dbc0a1ef9aed1"
   });
-  t.deepEqual(resp.receipt, {});
+  t.deepEqual(resp.receiptInfo.receipt, {});
 });
 
 test("RpcMethod.readContract", async t => {
@@ -196,4 +205,16 @@ test("RpcMethod.estimateGasForAction", async t => {
       t.deepEqual(resp2.gas, "10400");
     }
   }
+});
+
+test.only("RpcMethod.getEpochMeta", async t => {
+  const client = new RpcMethod(TEST_HOSTNAME);
+  const epochData = await client.getEpochMeta({ epochNumber: 1 });
+  t.truthy(epochData.totalBlocks);
+});
+
+test("RpcMethod.getDeadline", async t => {
+  const client = new RpcMethod(TEST_HOSTNAME);
+  const deadline = client.getDeadline();
+  t.truthy(deadline);
 });
